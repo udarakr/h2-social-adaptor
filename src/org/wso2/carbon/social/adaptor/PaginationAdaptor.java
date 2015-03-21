@@ -1,5 +1,7 @@
 package org.wso2.carbon.social.adaptor;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,13 +14,11 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.ndatasource.common.DataSourceException;
 import org.wso2.carbon.social.core.Activity;
 import org.wso2.carbon.social.core.SocialActivityException;
-import org.wso2.carbon.social.sql.Constants;
-import org.wso2.carbon.social.sql.DSConnection;
-import org.wso2.carbon.social.sql.SQLActivity;
-import org.wso2.carbon.social.sql.SocialUtil;
 
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 public class PaginationAdaptor {
 	private static final Log log = LogFactory.getLog(PaginationAdaptor.class);
@@ -76,27 +76,84 @@ public class PaginationAdaptor {
 			if (selectSQLDesc == null) {
 				// TODO remove info log
 				log.info("selectSQLDesc not found. setting up.. ");
-				selectSQLDesc = SocialUtil
-						.getSelectSQL(connection, order, type);
+				selectSQLDesc = getSelectSQL(connection, order, type);
 			}
 			SQL = selectSQLDesc;
 		} else if ("OLDEST".equals(order)) {
 			if (selectSQLAsc == null) {
 				// TODO remove info log
 				log.info("selectSQLAsc not found. setting up.. ");
-				selectSQLAsc = SocialUtil.getSelectSQL(connection, order, type);
+				selectSQLAsc = getSelectSQL(connection, order, type);
 			}
 			SQL = selectSQLAsc;
 		} else {
 			if (selectSQLPopular == null) {
 				// TODO remove info log
 				log.info("selectSQLPopular not found. setting up.. ");
-				selectSQLPopular = SocialUtil.getSelectSQL(connection, order,
+				selectSQLPopular = getSelectSQL(connection, order,
 						type);
 			}
 			SQL = selectSQLPopular;
 		}
 		return SQL;
 	}
+	
+	public static String getSelectSQL(Connection connection, String key, String queryType)
+			 throws SocialActivityException {
+
+					try {
+
+						JsonObject jsonObject = readJson(connection);
+						JsonObject selectSQLObject = (JsonObject) jsonObject.get(queryType);
+						String sql = selectSQLObject.get(key).getAsString();
+
+						if (sql != null) {
+							return sql;
+						} else {
+							throw new SocialActivityException(
+									"Unable to locate the query related to, type: "
+											+ queryType + " key: " + key);
+						}
+
+					} catch (FileNotFoundException e) {
+						log.error(e.getMessage());
+						throw new SocialActivityException(e.getMessage(), e);
+					} catch (JsonIOException e) {
+						log.error(e.getMessage());
+						throw new SocialActivityException(e.getMessage(), e);
+					} catch (JsonSyntaxException e) {
+						log.error(e.getMessage());
+						throw new SocialActivityException(e.getMessage(), e);
+					} catch (Exception e) {
+						log.error(e.getMessage());
+						throw new SocialActivityException(e.getMessage(), e);
+					}
+				}
+				
+				private static JsonObject readJson(Connection connection)
+						throws SocialActivityException, JsonIOException,
+						JsonSyntaxException, FileNotFoundException {
+					String databaseType;
+					try {
+						databaseType = DSConnection.getDatabaseType(connection);
+					} catch (Exception e) {
+						log.error(e.getMessage());
+						throw new SocialActivityException(e.getMessage(), e);
+					}
+					if (log.isDebugEnabled()) {
+						log.debug("Loading select query for " + databaseType);
+					}
+
+					String carbonHome = System.getProperty("carbon.home");
+					String dbJsonLocation = carbonHome
+							+ "/dbscripts/social/sql-scripts.json";
+					Object obj = parser.parse(new FileReader(dbJsonLocation));
+					JsonObject jsonObject = (JsonObject) obj;
+					JsonObject dbTypeObject = (JsonObject) jsonObject.get(databaseType);
+					
+					return dbTypeObject;
+
+				}
+
 
 }
