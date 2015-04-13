@@ -10,63 +10,43 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 public class OracleQueryAdaptor implements AdapterInterface {
-	
 
-	
 	private static final Log log = LogFactory.getLog(DefaultQueryAdaptor.class);
 	private static final String errorMsg = "Unable to generate the resultset";
 	private static final String preparedStatementMsg = "Creating preparedStatement for :";
 
-	public static final String COMMENT_SELECT_SQL_DESC = "SELECT "
-			+ Constants.BODY_COLUMN + ", " + Constants.ID_COLUMN + " FROM "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + " WHERE "
-			+ Constants.CONTEXT_ID_COLUMN + "= ? AND "
-			+ Constants.TENANT_DOMAIN_COLUMN + "= ? " + "ORDER BY "
-			+ Constants.ID_COLUMN + " DESC LIMIT ?,?";
+	public static final String COMMENT_SELECT_SQL_DESC = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id=? AND tenant_domain=? ORDER BY id DESC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
 
-	public static final String COMMENT_SELECT_SQL_ASC = "SELECT "
-			+ Constants.BODY_COLUMN + ", " + Constants.ID_COLUMN + " FROM "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + " WHERE "
-			+ Constants.CONTEXT_ID_COLUMN + "= ? AND "
-			+ Constants.TENANT_DOMAIN_COLUMN + "= ? " + "ORDER BY "
-			+ Constants.ID_COLUMN + " ASC LIMIT ?,?";
+	public static final String COMMENT_SELECT_SQL_ASC = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id= ? AND tenant_domain=? ORDER BY id ASC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
 
-	public static final String POPULAR_COMMENTS_SELECT_SQL = "SELECT "
-			+ Constants.BODY_COLUMN + ", " + Constants.ID_COLUMN + " FROM "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + " WHERE "
-			+ Constants.CONTEXT_ID_COLUMN + "= ? AND "
-			+ Constants.TENANT_DOMAIN_COLUMN + "= ? ORDER BY "
-			+ Constants.LIKES_COLUMN + " DESC LIMIT ?,?";
+	public static final String POPULAR_COMMENTS_SELECT_SQL = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id=? AND tenant_domain=? ORDER BY likes DESC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
 
-	public static final String POPULAR_ASSETS_SELECT_SQL = "SELECT "
-			+ Constants.CONTEXT_ID_COLUMN + " FROM "
-			+ Constants.SOCIAL_RATING_CACHE_TABLE_NAME + " WHERE "
-			+ Constants.CONTEXT_ID_COLUMN + " LIKE ? AND "
-			+ Constants.TENANT_DOMAIN_COLUMN + " = ? ORDER BY "
-			+ Constants.AVERAGE_RATING_COLUMN + " DESC LIMIT ?,?";
+	public static final String POPULAR_ASSETS_SELECT_SQL = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_RATING_CACHE c WHERE payload_context_id LIKE ? AND tenant_domain= ? ORDER BY average_rating DESC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
 
 	private static final String INSERT_COMMENT_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + "("
-			+ Constants.BODY_COLUMN + "," + Constants.CONTEXT_ID_COLUMN + ","
-			+ Constants.USER_COLUMN + "," + Constants.TENANT_DOMAIN_COLUMN
-			+ ", " + Constants.LIKES_COLUMN + ", " + Constants.UNLIKES_COLUMN
-			+ ", " + Constants.TIMESTAMP_COLUMN
-			+ ") VALUES(?, ?, ?, ?, ?, ?, ?)";
+			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + "(" + Constants.ID_COLUMN
+			+ "," + Constants.BODY_COLUMN + "," + Constants.CONTEXT_ID_COLUMN
+			+ "," + Constants.USER_COLUMN + ","
+			+ Constants.TENANT_DOMAIN_COLUMN + ", " + Constants.LIKES_COLUMN
+			+ ", " + Constants.UNLIKES_COLUMN + ", "
+			+ Constants.TIMESTAMP_COLUMN
+			+ ") VALUES(SOCIAL_COMMENTS_SEQUENCE.nextval, ?, ?, ?, ?, ?, ?, ?)";
 
 	private static final String INSERT_RATING_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_RATING_TABLE_NAME + "("
-			+ Constants.COMMENT_ID_COLUMN + "," + Constants.CONTEXT_ID_COLUMN
-			+ "," + Constants.USER_COLUMN + ", "
+			+ Constants.SOCIAL_RATING_TABLE_NAME + "(" + Constants.ID_COLUMN
+			+ "," + Constants.COMMENT_ID_COLUMN + ","
+			+ Constants.CONTEXT_ID_COLUMN + "," + Constants.USER_COLUMN + ", "
 			+ Constants.TENANT_DOMAIN_COLUMN + ", " + Constants.RATING_COLUMN
-			+ ", " + Constants.TIMESTAMP_COLUMN + ") VALUES(?, ?, ?, ?, ?, ?)";
+			+ ", " + Constants.TIMESTAMP_COLUMN
+			+ ") VALUES(SOCIAL_RATING_SEQUENCE.nextval, ?, ?, ?, ?, ?, ?)";
 
 	private static final String INSERT_LIKE_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_LIKES_TABLE_NAME + "("
-			+ Constants.CONTEXT_ID_COLUMN + "," + Constants.USER_COLUMN + ", "
-			+ Constants.TENANT_DOMAIN_COLUMN + ", "
+			+ Constants.SOCIAL_LIKES_TABLE_NAME + "(" + Constants.ID_COLUMN
+			+ "," + Constants.CONTEXT_ID_COLUMN + "," + Constants.USER_COLUMN
+			+ ", " + Constants.TENANT_DOMAIN_COLUMN + ", "
 			+ Constants.LIKE_VALUE_COLUMN + "," + Constants.TIMESTAMP_COLUMN
-			+ ") VALUES(?, ?, ?, ?, ?)";
-	
+			+ ") VALUES(SOCIAL_LIKES_SEQUENCE.nextval, ?, ?, ?, ?, ?)";
+
 	@Override
 	public ResultSet getPaginatedActivitySet(Connection connection,
 			String targetId, String tenant, String order, int limit, int offset)
@@ -139,8 +119,8 @@ public class OracleQueryAdaptor implements AdapterInterface {
 		statement = connection.prepareStatement(POPULAR_ASSETS_SELECT_SQL);
 		statement.setString(1, type + "%");
 		statement.setString(2, tenantDomain);
-		statement.setInt(3, offset);
-		statement.setInt(4, limit);
+		statement.setInt(3, limit);
+		statement.setInt(4, offset);
 		return statement;
 
 	}
@@ -281,7 +261,5 @@ public class OracleQueryAdaptor implements AdapterInterface {
 		generatedKeys.close();
 		return autoGeneratedKey;
 	}
-	
-
 
 }
