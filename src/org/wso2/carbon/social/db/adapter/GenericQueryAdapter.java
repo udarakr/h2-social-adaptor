@@ -32,8 +32,9 @@ import org.apache.commons.logging.LogFactory;
  */
 
 public class GenericQueryAdapter implements AdapterInterface {
-	
-	protected static final Log log = LogFactory.getLog(GenericQueryAdapter.class);
+
+	protected static final Log log = LogFactory
+			.getLog(GenericQueryAdapter.class);
 	protected static final String errorMsg = "Unable to generate the resultset";
 	protected static final String preparedStatementMsg = "Creating preparedStatement for :";
 
@@ -86,7 +87,7 @@ public class GenericQueryAdapter implements AdapterInterface {
 			+ Constants.TENANT_DOMAIN_COLUMN + ", "
 			+ Constants.LIKE_VALUE_COLUMN + "," + Constants.TIMESTAMP_COLUMN
 			+ ") VALUES(?, ?, ?, ?, ?)";
-	
+
 	@Override
 	public ResultSet getPaginatedActivitySet(Connection connection,
 			String targetId, String tenant, String order, int limit, int offset)
@@ -97,15 +98,15 @@ public class GenericQueryAdapter implements AdapterInterface {
 			statement = getPaginatedActivitySetPreparedStatement(connection,
 					targetId, tenant, order, limit, offset);
 			resultSet = statement.executeQuery();
+			
 			return resultSet;
-
+			
 		} catch (SQLException e) {
-			String message = errorMsg + e.getMessage();
-			log.error(message, e);
+			log.error(errorMsg + e.getMessage(), e);
 			throw e;
 		}
 	}
-	
+
 	@Override
 	public PreparedStatement getPaginatedActivitySetPreparedStatement(
 			Connection connection, String targetId, String tenant,
@@ -114,9 +115,10 @@ public class GenericQueryAdapter implements AdapterInterface {
 		String selectQuery = getSelectquery(order);
 
 		if (log.isDebugEnabled()) {
-			log.debug(preparedStatementMsg + selectQuery + " targetId: "
-					+ targetId + " tenant: " + tenant + " limit: " + limit
-					+ " offset: " + offset);
+			log.debug(preparedStatementMsg + selectQuery
+					+ " with following parameters, targetId: " + targetId
+					+ " tenant: " + tenant + " limit: " + limit + " offset: "
+					+ offset);
 		}
 
 		statement = connection.prepareStatement(selectQuery);
@@ -124,6 +126,7 @@ public class GenericQueryAdapter implements AdapterInterface {
 		statement.setString(2, tenant);
 		statement.setInt(3, offset);
 		statement.setInt(4, limit);
+		
 		return statement;
 	}
 
@@ -140,8 +143,7 @@ public class GenericQueryAdapter implements AdapterInterface {
 			return resultSet;
 
 		} catch (SQLException e) {
-			String message = errorMsg + e.getMessage();
-			log.error(message, e);
+			log.error(errorMsg + e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -154,8 +156,8 @@ public class GenericQueryAdapter implements AdapterInterface {
 
 		if (log.isDebugEnabled()) {
 			log.debug(preparedStatementMsg + POPULAR_ASSETS_SELECT_SQL
-					+ " type: " + type + " tenant: " + tenantDomain
-					+ " offset: " + offset + " limit : " + limit);
+					+ " with following parameters, type: " + type + " tenant: "
+					+ tenantDomain + " offset: " + offset + " limit : " + limit);
 		}
 
 		statement = connection.prepareStatement(POPULAR_ASSETS_SELECT_SQL);
@@ -163,6 +165,7 @@ public class GenericQueryAdapter implements AdapterInterface {
 		statement.setString(2, tenantDomain);
 		statement.setInt(3, offset);
 		statement.setInt(4, limit);
+		
 		return statement;
 
 	}
@@ -186,7 +189,7 @@ public class GenericQueryAdapter implements AdapterInterface {
 			return getGenaratedKeys(generatedKeys);
 
 		} catch (SQLException e) {
-			log.error("Error while publishing comment activity. ", e);
+			log.error("Error while publishing comment activity. " + e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -199,8 +202,9 @@ public class GenericQueryAdapter implements AdapterInterface {
 		PreparedStatement commentStatement;
 
 		if (log.isDebugEnabled()) {
-			log.debug(preparedStatementMsg + INSERT_COMMENT_SQL + " json: "
-					+ json + " targetId: " + targetId + " userId: " + userId
+			log.debug(preparedStatementMsg + INSERT_COMMENT_SQL
+					+ " with following parameters, json: " + json
+					+ " targetId: " + targetId + " userId: " + userId
 					+ " tenantDomain: " + tenantDomain);
 		}
 
@@ -213,6 +217,7 @@ public class GenericQueryAdapter implements AdapterInterface {
 		commentStatement.setInt(5, totalLikes);
 		commentStatement.setInt(6, totalUnlikes);
 		commentStatement.setInt(7, timeStamp);
+		
 		return commentStatement;
 
 	}
@@ -230,14 +235,11 @@ public class GenericQueryAdapter implements AdapterInterface {
 
 			returnVal = ratingStatement.executeUpdate();
 
-			if (returnVal > 0) {
-				return true;
-			} else {
-				return false;
-			}
+			boolean value = returnVal > 0 ? true : false;
+			return value;
 
 		} catch (SQLException e) {
-			log.error("Error while publishing rating activity. ", e);
+			log.error("Error while publishing rating activity. " + e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -249,7 +251,11 @@ public class GenericQueryAdapter implements AdapterInterface {
 			throws SQLException {
 		PreparedStatement ratingStatement;
 		if (log.isDebugEnabled()) {
-			log.debug("Executing: " + INSERT_RATING_SQL);
+			log.debug(preparedStatementMsg + INSERT_RATING_SQL
+					+ " with following parameters, generatedKey: "
+					+ autoGeneratedKey + " target: " + targetId + " user: "
+					+ userId + " tenant: " + tenantDomain + " rating: "
+					+ rating);
 		}
 
 		ratingStatement = connection.prepareStatement(INSERT_RATING_SQL);
@@ -259,6 +265,7 @@ public class GenericQueryAdapter implements AdapterInterface {
 		ratingStatement.setString(4, tenantDomain);
 		ratingStatement.setInt(5, rating);
 		ratingStatement.setInt(6, timeStamp);
+		
 		return ratingStatement;
 	}
 
@@ -274,13 +281,11 @@ public class GenericQueryAdapter implements AdapterInterface {
 					timestamp);
 			returnVal = insertActivityStatement.executeUpdate();
 
-			if (returnVal > 0) {
-				return true;
-			} else {
-				return false;
-			}
+			boolean value = returnVal > 0 ? true : false;
+			return value;
+			
 		} catch (SQLException e) {
-			log.error("Error while publishing like activity. ", e);
+			log.error("Error while publishing like activity. " + e.getMessage(), e);
 			throw e;
 		}
 	}
@@ -292,7 +297,10 @@ public class GenericQueryAdapter implements AdapterInterface {
 			throws SQLException {
 		PreparedStatement insertActivityStatement;
 		if (log.isDebugEnabled()) {
-			log.debug("Executing: " + INSERT_LIKE_SQL);
+			log.debug(preparedStatementMsg + INSERT_LIKE_SQL
+					+ " with following parameters, target: " + targetId
+					+ " user: " + actor + " tenant: " + tenantDomain
+					+ " like: " + likeValue);
 		}
 
 		insertActivityStatement = connection.prepareStatement(INSERT_LIKE_SQL);
@@ -301,6 +309,7 @@ public class GenericQueryAdapter implements AdapterInterface {
 		insertActivityStatement.setString(3, tenantDomain);
 		insertActivityStatement.setInt(4, likeValue);
 		insertActivityStatement.setInt(5, timestamp);
+		
 		return insertActivityStatement;
 	}
 
@@ -318,12 +327,12 @@ public class GenericQueryAdapter implements AdapterInterface {
 	@Override
 	public long getGenaratedKeys(ResultSet generatedKeys) throws SQLException {
 		long autoGeneratedKey = -1;
-		
+
 		if (generatedKeys.next()) {
 			autoGeneratedKey = generatedKeys.getLong(1);
 			generatedKeys.close();
 		}
 		return autoGeneratedKey;
 	}
-	
+
 }
