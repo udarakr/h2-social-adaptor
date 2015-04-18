@@ -44,29 +44,11 @@ public class OracleQueryAdapter extends GenericQueryAdapter implements
 
 	private static final String POPULAR_ASSETS_SELECT_SQL = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_RATING_CACHE c WHERE payload_context_id LIKE ? AND tenant_domain= ? ORDER BY rating_average DESC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
 
-	private static final String INSERT_COMMENT_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + "(" + Constants.ID_COLUMN
-			+ "," + Constants.BODY_COLUMN + "," + Constants.CONTEXT_ID_COLUMN
-			+ "," + Constants.USER_COLUMN + ","
-			+ Constants.TENANT_DOMAIN_COLUMN + ", " + Constants.LIKES_COLUMN
-			+ ", " + Constants.UNLIKES_COLUMN + ", "
-			+ Constants.TIMESTAMP_COLUMN
-			+ ") VALUES(SOCIAL_COMMENTS_SEQUENCE.nextval, ?, ?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_COMMENT_SQL = "INSERT INTO SOCIAL_COMMENTS (id, body, payload_context_id, user_id, tenant_domain, likes, unlikes, timestamp) VALUES(SOCIAL_COMMENTS_SEQUENCE.nextval, ?, ?, ?, ?, ?, ?, ?)";
 
-	private static final String INSERT_RATING_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_RATING_TABLE_NAME + "(" + Constants.ID_COLUMN
-			+ "," + Constants.COMMENT_ID_COLUMN + ","
-			+ Constants.CONTEXT_ID_COLUMN + "," + Constants.USER_COLUMN + ", "
-			+ Constants.TENANT_DOMAIN_COLUMN + ", " + Constants.RATING_COLUMN
-			+ ", " + Constants.TIMESTAMP_COLUMN
-			+ ") VALUES(SOCIAL_RATING_SEQUENCE.nextval, ?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_RATING_SQL = "INSERT INTO SOCIAL_RATING (id, comment_id, payload_context_id, user_id, tenant_domain, rating, timestamp) VALUES(SOCIAL_RATING_SEQUENCE.nextval, ?, ?, ?, ?, ?, ?)";
 
-	private static final String INSERT_LIKE_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_LIKES_TABLE_NAME + "(" + Constants.ID_COLUMN
-			+ "," + Constants.CONTEXT_ID_COLUMN + "," + Constants.USER_COLUMN
-			+ ", " + Constants.TENANT_DOMAIN_COLUMN + ", "
-			+ Constants.LIKE_VALUE_COLUMN + "," + Constants.TIMESTAMP_COLUMN
-			+ ") VALUES(SOCIAL_LIKES_SEQUENCE.nextval, ?, ?, ?, ?, ?)";
+	private static final String INSERT_LIKE_SQL = "INSERT INTO SOCIAL_LIKES (id, payload_context_id, user_id, tenant_domain, like_value, timestamp) VALUES(SOCIAL_LIKES_SEQUENCE.nextval, ?, ?, ?, ?, ?)";
 
 	@Override
 	public ResultSet getPaginatedActivitySet(Connection connection,

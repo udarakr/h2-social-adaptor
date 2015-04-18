@@ -38,55 +38,19 @@ public class GenericQueryAdapter implements AdapterInterface {
 	protected static final String errorMsg = "Unable to generate the resultset";
 	protected static final String preparedStatementMsg = "Creating preparedStatement for :";
 
-	private static final String COMMENT_SELECT_SQL_DESC = "SELECT "
-			+ Constants.BODY_COLUMN + ", " + Constants.ID_COLUMN + " FROM "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + " WHERE "
-			+ Constants.CONTEXT_ID_COLUMN + "= ? AND "
-			+ Constants.TENANT_DOMAIN_COLUMN + "= ? " + "ORDER BY "
-			+ Constants.ID_COLUMN + " DESC LIMIT ?,?";
+	private static final String COMMENT_SELECT_SQL_DESC = "SELECT body, id FROM SOCIAL_COMMENTS WHERE payload_context_id = ? AND tenant_domain = ? ORDER BY id DESC LIMIT ?,?";
 
-	private static final String COMMENT_SELECT_SQL_ASC = "SELECT "
-			+ Constants.BODY_COLUMN + ", " + Constants.ID_COLUMN + " FROM "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + " WHERE "
-			+ Constants.CONTEXT_ID_COLUMN + "= ? AND "
-			+ Constants.TENANT_DOMAIN_COLUMN + "= ? " + "ORDER BY "
-			+ Constants.ID_COLUMN + " ASC LIMIT ?,?";
+	private static final String COMMENT_SELECT_SQL_ASC = "SELECT body, id FROM SOCIAL_COMMENTS WHERE payload_context_id = ? AND tenant_domain = ? ORDER BY id ASC LIMIT ?,?";
 
-	private static final String POPULAR_COMMENTS_SELECT_SQL = "SELECT "
-			+ Constants.BODY_COLUMN + ", " + Constants.ID_COLUMN + " FROM "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + " WHERE "
-			+ Constants.CONTEXT_ID_COLUMN + "= ? AND "
-			+ Constants.TENANT_DOMAIN_COLUMN + "= ? ORDER BY "
-			+ Constants.LIKES_COLUMN + " DESC LIMIT ?,?";
+	private static final String POPULAR_COMMENTS_SELECT_SQL = "SELECT body, id FROM SOCIAL_COMMENTS WHERE payload_context_id = ? AND tenant_domain = ? ORDER BY likes DESC LIMIT ?,?";
 
-	private static final String POPULAR_ASSETS_SELECT_SQL = "SELECT "
-			+ Constants.CONTEXT_ID_COLUMN + " FROM "
-			+ Constants.SOCIAL_RATING_CACHE_TABLE_NAME + " WHERE "
-			+ Constants.CONTEXT_ID_COLUMN + " LIKE ? AND "
-			+ Constants.TENANT_DOMAIN_COLUMN + " = ? ORDER BY "
-			+ Constants.AVERAGE_RATING_COLUMN + " DESC LIMIT ?,?";
+	private static final String POPULAR_ASSETS_SELECT_SQL = "SELECT payload_context_id FROM SOCIAL_RATING_CACHE WHERE payload_context_id LIKE ? AND tenant_domain = ? ORDER BY rating_average DESC LIMIT ?,?";
 
-	private static final String INSERT_COMMENT_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_COMMENTS_TABLE_NAME + "("
-			+ Constants.BODY_COLUMN + "," + Constants.CONTEXT_ID_COLUMN + ","
-			+ Constants.USER_COLUMN + "," + Constants.TENANT_DOMAIN_COLUMN
-			+ ", " + Constants.LIKES_COLUMN + ", " + Constants.UNLIKES_COLUMN
-			+ ", " + Constants.TIMESTAMP_COLUMN
-			+ ") VALUES(?, ?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_COMMENT_SQL = "INSERT INTO SOCIAL_COMMENTS (body, payload_context_id, user_id, tenant_domain, likes, unlikes, timestamp) VALUES(?, ?, ?, ?, ?, ?, ?)";
 
-	private static final String INSERT_RATING_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_RATING_TABLE_NAME + "("
-			+ Constants.COMMENT_ID_COLUMN + "," + Constants.CONTEXT_ID_COLUMN
-			+ "," + Constants.USER_COLUMN + ", "
-			+ Constants.TENANT_DOMAIN_COLUMN + ", " + Constants.RATING_COLUMN
-			+ ", " + Constants.TIMESTAMP_COLUMN + ") VALUES(?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_RATING_SQL = "INSERT INTO SOCIAL_RATING (comment_id, payload_context_id, user_id, tenant_domain, rating, timestamp) VALUES(?, ?, ?, ?, ?, ?)";
 
-	private static final String INSERT_LIKE_SQL = "INSERT INTO "
-			+ Constants.SOCIAL_LIKES_TABLE_NAME + "("
-			+ Constants.CONTEXT_ID_COLUMN + "," + Constants.USER_COLUMN + ", "
-			+ Constants.TENANT_DOMAIN_COLUMN + ", "
-			+ Constants.LIKE_VALUE_COLUMN + "," + Constants.TIMESTAMP_COLUMN
-			+ ") VALUES(?, ?, ?, ?, ?)";
+	private static final String INSERT_LIKE_SQL = "INSERT INTO SOCIAL_LIKES (payload_context_id, user_id, tenant_domain, like_value, timestamp) VALUES(?, ?, ?, ?, ?)";
 
 	@Override
 	public ResultSet getPaginatedActivitySet(Connection connection,
