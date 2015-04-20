@@ -195,7 +195,7 @@ public interface AdapterInterface {
 	/**
 	 * Get generated ID by providing the resultSet.
 	 * 
-	 * @param ResultSet
+	 * @param generatedKeys
 	 * @return generated ID
 	 * @throws SQLException 
 	 */
