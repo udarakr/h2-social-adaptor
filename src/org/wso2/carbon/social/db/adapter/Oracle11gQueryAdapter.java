@@ -30,17 +30,17 @@ import org.apache.commons.logging.LogFactory;
  /This class is there to handle cross database pagination, insert activities using sequence.next and RETURN_GENERATED_KEYS for Oracle.
  */
 
-public class OracleQueryAdapter extends GenericQueryAdapter implements
+public class Oracle11gQueryAdapter extends GenericQueryAdapter implements
 		AdapterInterface {
 
 	private static final Log log = LogFactory.getLog(GenericQueryAdapter.class);
 	private static final String preparedStatementMsg = "Creating preparedStatement for :";
 
-	private static final String COMMENT_SELECT_SQL_DESC = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id=? AND tenant_domain=? ORDER BY id DESC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
+	private static final String COMMENT_SELECT_SQL_DESC = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id=? AND tenant_domain=? ORDER BY id DESC) b WHERE rownum <= ?) a WHERE b_rownum > ?";
 
-	private static final String COMMENT_SELECT_SQL_ASC = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id= ? AND tenant_domain=? ORDER BY id ASC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
+	private static final String COMMENT_SELECT_SQL_ASC = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id= ? AND tenant_domain=? ORDER BY id ASC) b WHERE rownum <= ?) a WHERE b_rownum > ?";
 
-	private static final String POPULAR_COMMENTS_SELECT_SQL = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id=? AND tenant_domain=? ORDER BY likes DESC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
+	private static final String POPULAR_COMMENTS_SELECT_SQL = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_COMMENTS c WHERE payload_context_id=? AND tenant_domain=? ORDER BY likes DESC) b WHERE rownum <= ?) a WHERE b_rownum > ?";
 
 	private static final String POPULAR_ASSETS_SELECT_SQL = "SELECT a.* FROM (SELECT b.*, rownum b_rownum FROM (SELECT c.* FROM SOCIAL_RATING_CACHE c WHERE payload_context_id LIKE ? AND tenant_domain= ? ORDER BY rating_average DESC) b WHERE rownum <= ?) a WHERE b_rownum >= ?";
 
@@ -78,7 +78,7 @@ public class OracleQueryAdapter extends GenericQueryAdapter implements
 		statement = connection.prepareStatement(selectQuery);
 		statement.setString(1, targetId);
 		statement.setString(2, tenant);
-		statement.setInt(3, limit);
+		statement.setInt(3, limit + offset);
 		statement.setInt(4, offset);
 		
 		return statement;
@@ -109,7 +109,7 @@ public class OracleQueryAdapter extends GenericQueryAdapter implements
 		statement = connection.prepareStatement(POPULAR_ASSETS_SELECT_SQL);
 		statement.setString(1, type + "%");
 		statement.setString(2, tenantDomain);
-		statement.setInt(3, limit);
+		statement.setInt(3, limit + offset);
 		statement.setInt(4, offset);
 		
 		return statement;
